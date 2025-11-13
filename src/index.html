@@ -140,6 +140,34 @@
                         </div>
                         <input type="range" class="slider" id="questionCount" min="1" max="15" value="3">
                     </div>
+
+                    <!-- Food Mode Selection -->
+                    <div class="field">
+                        <label class="label">Prompt Type</label>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 6px; transition: all 0.2s;">
+                                <input type="radio" name="foodModeRadio" value="random" checked style="margin-right: 0.75rem;">
+                                <div>
+                                    <div style="font-weight: 500; color: var(--text-primary);">🎲 All Categories (1000+ prompts)</div>
+                                    <small style="color: var(--text-secondary); font-size: 11px;">Mix of everything - most variety</small>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 6px; transition: all 0.2s;">
+                                <input type="radio" name="foodModeRadio" value="allFoods" style="margin-right: 0.75rem;">
+                                <div>
+                                    <div style="font-weight: 500; color: var(--text-primary);">🍔 All Foods (500+ prompts)</div>
+                                    <small style="color: var(--text-secondary); font-size: 11px;">Delicious foods only - meals, snacks, desserts</small>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 6px; transition: all 0.2s;">
+                                <input type="radio" name="foodModeRadio" value="simpleFoods" style="margin-right: 0.75rem;">
+                                <div>
+                                    <div style="font-weight: 500; color: var(--text-primary);">🍕 Simple Fast Foods (100+ prompts)</div>
+                                    <small style="color: var(--text-secondary); font-size: 11px;">Basic favorites - pizza, burger, fries, etc.</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Timing Controls -->

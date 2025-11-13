@@ -604,7 +604,7 @@ class VideoGenerator {
         });
 
         // NEW: Prompt mode selection (radio buttons)
-        document.querySelectorAll('input[name="promptMode"]').forEach(radio => {
+        document.querySelectorAll('input[name="foodModeRadio"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 const value = e.target.value;
                 this.foodOnlyMode = (value === 'allFoods');
