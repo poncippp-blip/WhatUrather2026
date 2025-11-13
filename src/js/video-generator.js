@@ -9,9 +9,17 @@ class VideoGenerator {
         this.promptManager = new PromptManager();
         this.engagementManager = new EngagementManager();
 
-        // Canvas setup
+        // Canvas setup with error handling
         this.canvas = document.getElementById('previewCanvas');
+        if (!this.canvas) {
+            console.error('Canvas element not found!');
+            return;
+        }
         this.ctx = this.canvas.getContext('2d');
+        if (!this.ctx) {
+            console.error('Could not get 2D context from canvas!');
+            return;
+        }
         this.width = 1080;
         this.height = 1920;
 
@@ -234,20 +242,44 @@ class VideoGenerator {
         // Keyboard shortcuts enabled
         this.keyboardShortcutsEnabled = true;
 
-        // Event listeners
-        this.generateBtn.addEventListener('click', () => this.generateVideo());
-        this.downloadBtn.addEventListener('click', () => this.downloadVideo());
-        this.playBtn.addEventListener('click', () => this.play());
-        this.pauseBtn.addEventListener('click', () => this.pause());
-        this.restartBtn.addEventListener('click', () => this.restart());
+        // Event listeners - with null checks to prevent errors
+        if (this.generateBtn) {
+            this.generateBtn.addEventListener('click', () => this.generateVideo());
+        }
+        if (this.downloadBtn) {
+            this.downloadBtn.addEventListener('click', () => this.downloadVideo());
+        }
+        if (this.playBtn) {
+            this.playBtn.addEventListener('click', () => this.play());
+        }
+        if (this.pauseBtn) {
+            this.pauseBtn.addEventListener('click', () => this.pause());
+        }
+        if (this.restartBtn) {
+            this.restartBtn.addEventListener('click', () => this.restart());
+        }
 
-        this.unsplashKeyInput.addEventListener('change', () => this.saveAPIKeys());
-        this.elevenlabsKeyInput.addEventListener('change', () => this.saveAPIKeys());
+        if (this.unsplashKeyInput) {
+            this.unsplashKeyInput.addEventListener('change', () => this.saveAPIKeys());
+        }
+        if (this.elevenlabsKeyInput) {
+            this.elevenlabsKeyInput.addEventListener('change', () => this.saveAPIKeys());
+        }
 
         // Config management
-        this.saveConfigBtn.addEventListener('click', () => this.saveConfig());
-        this.loadConfigBtn.addEventListener('click', () => this.configFileInput.click());
-        this.configFileInput.addEventListener('change', (e) => this.loadConfig(e));
+        if (this.saveConfigBtn) {
+            this.saveConfigBtn.addEventListener('click', () => this.saveConfig());
+        }
+        if (this.loadConfigBtn) {
+            this.loadConfigBtn.addEventListener('click', () => {
+                if (this.configFileInput) {
+                    this.configFileInput.click();
+                }
+            });
+        }
+        if (this.configFileInput) {
+            this.configFileInput.addEventListener('change', (e) => this.loadConfig(e));
+        }
 
         // Prompt source toggle
         this.promptSourceRadios.forEach(radio => {
@@ -1314,6 +1346,11 @@ class VideoGenerator {
     }
 
     drawInitialCanvas() {
+        if (!this.ctx) {
+            console.warn('Canvas context not available, skipping initial draw');
+            return;
+        }
+
         this.ctx.fillStyle = '#000';
         this.ctx.fillRect(0, 0, this.width, this.height);
 
@@ -1328,9 +1365,15 @@ class VideoGenerator {
     }
 
     updateStatus(message, progress = 0) {
-        this.statusPanel.classList.remove('hidden');
-        this.statusText.textContent = message;
-        this.progressFill.style.width = `${progress}%`;
+        if (this.statusPanel) {
+            this.statusPanel.classList.remove('hidden');
+        }
+        if (this.statusText) {
+            this.statusText.textContent = message;
+        }
+        if (this.progressFill) {
+            this.progressFill.style.width = `${progress}%`;
+        }
     }
 
     async generateVideo() {

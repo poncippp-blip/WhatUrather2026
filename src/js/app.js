@@ -1,7 +1,8 @@
 // Application Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize video generator
+    // Initialize video generator and make it globally accessible
     const generator = new VideoGenerator();
+    window.generator = generator;
 
     // Prompt Manager Modal Setup
     const promptManagerBtn = document.getElementById('promptManagerBtn');
