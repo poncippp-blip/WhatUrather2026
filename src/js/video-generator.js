@@ -837,45 +837,73 @@ class VideoGenerator {
     }
 
     loadAPIKeys() {
-        // Load from localStorage first
-        const savedUnsplash = localStorage.getItem('unsplashApiKey');
-        const savedElevenlabs = localStorage.getItem('elevenlabsApiKey');
+        try {
+            // Load from localStorage first
+            const savedUnsplash = localStorage.getItem('unsplashApiKey');
+            const savedElevenlabs = localStorage.getItem('elevenlabsApiKey');
 
-        if (savedUnsplash) {
-            this.unsplashKey = savedUnsplash;
-            this.unsplashKeyInput.value = savedUnsplash;
-        } else {
-            // Set default API keys if none saved
-            this.unsplashKeyInput.value = this.unsplashKey;
-        }
-
-        if (savedElevenlabs) {
-            this.elevenlabsKey = savedElevenlabs;
-            this.elevenlabsKeyInput.value = savedElevenlabs;
-        } else {
-            // Set default API keys if none saved
-            this.elevenlabsKeyInput.value = this.elevenlabsKey;
-        }
-
-        // Load from config file (can override)
-        if (typeof CONFIG !== 'undefined') {
-            if (CONFIG.unsplashAccessKey && CONFIG.unsplashAccessKey !== 'YOUR_ACCESS_KEY_HERE') {
-                this.unsplashKey = CONFIG.unsplashAccessKey;
-                this.unsplashKeyInput.value = this.unsplashKey;
+            if (savedUnsplash) {
+                this.unsplashKey = savedUnsplash;
+                if (this.unsplashKeyInput) {
+                    this.unsplashKeyInput.value = savedUnsplash;
+                }
+            } else {
+                // Set default API keys if none saved
+                if (this.unsplashKeyInput) {
+                    this.unsplashKeyInput.value = this.unsplashKey;
+                }
             }
-            if (CONFIG.elevenlabsApiKey && CONFIG.elevenlabsApiKey !== 'YOUR_ELEVENLABS_KEY_HERE') {
-                this.elevenlabsKey = CONFIG.elevenlabsApiKey;
-                this.elevenlabsKeyInput.value = this.elevenlabsKey;
+
+            if (savedElevenlabs) {
+                this.elevenlabsKey = savedElevenlabs;
+                if (this.elevenlabsKeyInput) {
+                    this.elevenlabsKeyInput.value = savedElevenlabs;
+                }
+            } else {
+                // Set default API keys if none saved
+                if (this.elevenlabsKeyInput) {
+                    this.elevenlabsKeyInput.value = this.elevenlabsKey;
+                }
             }
+
+            // Load from config file (can override)
+            if (typeof CONFIG !== 'undefined') {
+                if (CONFIG.unsplashAccessKey && CONFIG.unsplashAccessKey !== 'YOUR_ACCESS_KEY_HERE') {
+                    this.unsplashKey = CONFIG.unsplashAccessKey;
+                    if (this.unsplashKeyInput) {
+                        this.unsplashKeyInput.value = this.unsplashKey;
+                    }
+                }
+                if (CONFIG.elevenlabsApiKey && CONFIG.elevenlabsApiKey !== 'YOUR_ELEVENLABS_KEY_HERE') {
+                    this.elevenlabsKey = CONFIG.elevenlabsApiKey;
+                    if (this.elevenlabsKeyInput) {
+                        this.elevenlabsKeyInput.value = this.elevenlabsKey;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load API keys:', e);
         }
     }
 
     saveAPIKeys() {
-        this.unsplashKey = this.unsplashKeyInput.value.trim();
-        this.elevenlabsKey = this.elevenlabsKeyInput.value.trim();
+        if (this.unsplashKeyInput) {
+            this.unsplashKey = this.unsplashKeyInput.value.trim();
+        }
+        if (this.elevenlabsKeyInput) {
+            this.elevenlabsKey = this.elevenlabsKeyInput.value.trim();
+        }
 
-        if (this.unsplashKey) localStorage.setItem('unsplashApiKey', this.unsplashKey);
-        if (this.elevenlabsKey) localStorage.setItem('elevenlabsApiKey', this.elevenlabsKey);
+        try {
+            if (this.unsplashKey) {
+                localStorage.setItem('unsplashApiKey', this.unsplashKey);
+            }
+            if (this.elevenlabsKey) {
+                localStorage.setItem('elevenlabsApiKey', this.elevenlabsKey);
+            }
+        } catch (e) {
+            console.error('Failed to save API keys:', e);
+        }
     }
 
     generateManualInputs() {
@@ -930,47 +958,49 @@ class VideoGenerator {
     }
 
     saveConfig() {
+        const promptSourceChecked = document.querySelector('input[name="promptSource"]:checked');
+
         const config = {
             version: '1.0',
             timestamp: new Date().toISOString(),
             apiKeys: {
-                unsplash: this.unsplashKeyInput.value.trim(),
-                elevenlabs: this.elevenlabsKeyInput.value.trim()
+                unsplash: this.unsplashKeyInput?.value?.trim() || '',
+                elevenlabs: this.elevenlabsKeyInput?.value?.trim() || ''
             },
-            voice: this.voiceSelect.value,
+            voice: this.voiceSelect?.value || '',
             musicVolume: this.musicVolume,
             questionCount: this.questionCount,
             timing: { ...this.timing },
             engagement: {
                 comment: {
-                    enabled: this.commentEngagementCB.checked,
-                    option1: this.commentOption1.value.trim(),
-                    option2: this.commentOption2.value.trim(),
-                    insertAfter: parseInt(this.commentInsertAfter.value) || 0
+                    enabled: this.commentEngagementCB?.checked || false,
+                    option1: this.commentOption1?.value?.trim() || '',
+                    option2: this.commentOption2?.value?.trim() || '',
+                    insertAfter: parseInt(this.commentInsertAfter?.value) || 0
                 },
                 share: {
-                    enabled: this.shareEngagementCB.checked,
-                    option1: this.shareOption1.value.trim(),
-                    option2: this.shareOption2.value.trim(),
-                    insertAfter: parseInt(this.shareInsertAfter.value) || 0
+                    enabled: this.shareEngagementCB?.checked || false,
+                    option1: this.shareOption1?.value?.trim() || '',
+                    option2: this.shareOption2?.value?.trim() || '',
+                    insertAfter: parseInt(this.shareInsertAfter?.value) || 0
                 },
                 follow: {
-                    enabled: this.followEngagementCB.checked,
-                    option1: this.followOption1.value.trim(),
-                    option2: this.followOption2.value.trim(),
-                    insertAfter: parseInt(this.followInsertAfter.value) || 0
+                    enabled: this.followEngagementCB?.checked || false,
+                    option1: this.followOption1?.value?.trim() || '',
+                    option2: this.followOption2?.value?.trim() || '',
+                    insertAfter: parseInt(this.followInsertAfter?.value) || 0
                 },
                 like: {
-                    enabled: this.likeEngagementCB.checked,
-                    option1: this.likeOption1.value.trim(),
-                    option2: this.likeOption2.value.trim(),
-                    insertAfter: parseInt(this.likeInsertAfter.value) || 0
+                    enabled: this.likeEngagementCB?.checked || false,
+                    option1: this.likeOption1?.value?.trim() || '',
+                    option2: this.likeOption2?.value?.trim() || '',
+                    insertAfter: parseInt(this.likeInsertAfter?.value) || 0
                 }
             },
-            promptSource: document.querySelector('input[name="promptSource"]:checked').value,
+            promptSource: promptSourceChecked?.value || 'random',
             customPrompt: {
-                option1: this.customOption1.value.trim(),
-                option2: this.customOption2.value.trim()
+                option1: this.customOption1?.value?.trim() || '',
+                option2: this.customOption2?.value?.trim() || ''
             },
             imageShadow: { ...this.imageShadow },
             foodOnlyMode: this.foodOnlyMode,
