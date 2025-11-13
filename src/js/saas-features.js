@@ -23,22 +23,24 @@ class SaaSFeatures {
 
     loadData() {
         // Load real user data
-        const videos = localStorage.getItem('generated_videos');
-        if (videos) {
-            try {
+        try {
+            const videos = localStorage.getItem('generated_videos');
+            if (videos) {
                 this.generatedVideos = JSON.parse(videos);
-            } catch(e) {
-                this.generatedVideos = [];
             }
+        } catch(e) {
+            console.error('Failed to load generated videos:', e);
+            this.generatedVideos = [];
         }
 
-        const projects = localStorage.getItem('user_projects');
-        if (projects) {
-            try {
+        try {
+            const projects = localStorage.getItem('user_projects');
+            if (projects) {
                 this.projects = JSON.parse(projects);
-            } catch(e) {
-                this.projects = [];
             }
+        } catch(e) {
+            console.error('Failed to load user projects:', e);
+            this.projects = [];
         }
     }
 
@@ -406,7 +408,11 @@ class SaaSFeatures {
     }
 
     saveProjects() {
-        localStorage.setItem('user_projects', JSON.stringify(this.projects));
+        try {
+            localStorage.setItem('user_projects', JSON.stringify(this.projects));
+        } catch(e) {
+            console.error('Failed to save projects:', e);
+        }
     }
 
     // ========== KEYBOARD SHORTCUTS ==========
@@ -434,7 +440,12 @@ class SaaSFeatures {
             ...videoData,
             timestamp: new Date().toISOString()
         });
-        localStorage.setItem('generated_videos', JSON.stringify(this.generatedVideos));
+
+        try {
+            localStorage.setItem('generated_videos', JSON.stringify(this.generatedVideos));
+        } catch(e) {
+            console.error('Failed to save generated video:', e);
+        }
     }
 }
 

@@ -12,6 +12,9 @@ class AdvancedFeatures {
         this.templates = {};
         this.canvasZoom = 1;
         this.playbackSpeed = 1;
+        this.captureStateTimeout = null;
+        this.toastTimeout = null;
+        this.eventListeners = [];
         this.init();
     }
 
@@ -106,20 +109,28 @@ class AdvancedFeatures {
     // ========== FEATURE 7-9: FAVORITES SYSTEM ==========
     saveFavorite() {
         const name = prompt('Enter a name for this favorite:');
-        if (!name) return;
+        if (!name || !name.trim()) return;
+
+        // Limit name length
+        const cleanName = name.trim().substring(0, 50);
 
         const settings = this.getCurrentSettings();
         const favorite = {
             id: Date.now(),
-            name,
+            name: cleanName,
             settings,
             timestamp: new Date().toISOString()
         };
 
         this.favorites.push(favorite);
-        localStorage.setItem('favorites', JSON.stringify(this.favorites));
-        this.showToast('success', 'Saved', `Favorite "${name}" saved`);
-        this.updateFavoritesList();
+        try {
+            localStorage.setItem('favorites', JSON.stringify(this.favorites));
+            this.showToast('success', 'Saved', `Favorite "${cleanName}" saved`);
+            this.updateFavoritesList();
+        } catch (e) {
+            console.error('Failed to save favorite:', e);
+            this.showToast('error', 'Error', 'Failed to save favorite');
+        }
     }
 
     loadFavorite(id) {
@@ -133,19 +144,24 @@ class AdvancedFeatures {
 
     deleteFavorite(id) {
         this.favorites = this.favorites.filter(f => f.id !== id);
-        localStorage.setItem('favorites', JSON.stringify(this.favorites));
-        this.updateFavoritesList();
-        this.showToast('info', 'Deleted', 'Favorite removed');
+        try {
+            localStorage.setItem('favorites', JSON.stringify(this.favorites));
+            this.updateFavoritesList();
+            this.showToast('info', 'Deleted', 'Favorite removed');
+        } catch (e) {
+            console.error('Failed to delete favorite:', e);
+        }
     }
 
     loadFavorites() {
-        const saved = localStorage.getItem('favorites');
-        if (saved) {
-            try {
+        try {
+            const saved = localStorage.getItem('favorites');
+            if (saved) {
                 this.favorites = JSON.parse(saved);
-            } catch (e) {
-                this.favorites = [];
             }
+        } catch (e) {
+            console.error('Failed to load favorites:', e);
+            this.favorites = [];
         }
     }
 
@@ -174,14 +190,15 @@ class AdvancedFeatures {
 
     // ========== FEATURE 10-12: TEMPLATES SYSTEM ==========
     loadTemplates() {
-        const saved = localStorage.getItem('templates');
-        if (saved) {
-            try {
+        try {
+            const saved = localStorage.getItem('templates');
+            if (saved) {
                 this.templates = JSON.parse(saved);
-            } catch (e) {
+            } else {
                 this.templates = this.getDefaultTemplates();
             }
-        } else {
+        } catch (e) {
+            console.error('Failed to load templates:', e);
             this.templates = this.getDefaultTemplates();
         }
     }
@@ -208,12 +225,19 @@ class AdvancedFeatures {
 
     saveCustomTemplate() {
         const name = prompt('Enter template name:');
-        if (!name) return;
+        if (!name || !name.trim()) return;
 
+        const cleanName = name.trim().substring(0, 30);
         const settings = this.getCurrentSettings();
-        this.templates[name.toLowerCase().replace(/\s+/g, '-')] = settings;
-        localStorage.setItem('templates', JSON.stringify(this.templates));
-        this.showToast('success', 'Template Saved', `Template "${name}" saved`);
+        this.templates[cleanName.toLowerCase().replace(/\s+/g, '-')] = settings;
+
+        try {
+            localStorage.setItem('templates', JSON.stringify(this.templates));
+            this.showToast('success', 'Template Saved', `Template "${cleanName}" saved`);
+        } catch (e) {
+            console.error('Failed to save template:', e);
+            this.showToast('error', 'Error', 'Failed to save template');
+        }
     }
 
     // ========== FEATURE 13-15: RECENT HISTORY ==========
@@ -230,19 +254,24 @@ class AdvancedFeatures {
             this.recentHistory = this.recentHistory.slice(0, 10);
         }
 
-        localStorage.setItem('recentHistory', JSON.stringify(this.recentHistory));
-        this.updateRecentHistory();
+        try {
+            localStorage.setItem('recentHistory', JSON.stringify(this.recentHistory));
+            this.updateRecentHistory();
+        } catch (e) {
+            console.error('Failed to save history:', e);
+        }
     }
 
     loadRecentHistory() {
-        const saved = localStorage.getItem('recentHistory');
-        if (saved) {
-            try {
+        try {
+            const saved = localStorage.getItem('recentHistory');
+            if (saved) {
                 this.recentHistory = JSON.parse(saved);
                 this.updateRecentHistory();
-            } catch (e) {
-                this.recentHistory = [];
             }
+        } catch (e) {
+            console.error('Failed to load history:', e);
+            this.recentHistory = [];
         }
     }
 
@@ -347,11 +376,17 @@ class AdvancedFeatures {
 
         toast.classList.remove('hidden', 'toast-exit');
 
+        // Clear existing timeout
+        if (this.toastTimeout) {
+            clearTimeout(this.toastTimeout);
+            this.toastTimeout = null;
+        }
+
         // Auto-hide
-        if (this.toastTimeout) clearTimeout(this.toastTimeout);
         this.toastTimeout = setTimeout(() => {
             toast.classList.add('toast-exit');
             setTimeout(() => toast.classList.add('hidden'), 300);
+            this.toastTimeout = null;
         }, duration);
     }
 
@@ -454,11 +489,23 @@ class AdvancedFeatures {
             toast?.classList.add('hidden');
         });
 
-        // Capture state on input changes
+        // Capture state on input changes with debouncing (500ms)
         document.querySelectorAll('input, select').forEach(input => {
-            input.addEventListener('change', () => {
-                this.captureState();
-            });
+            const handler = () => {
+                // Clear existing timeout
+                if (this.captureStateTimeout) {
+                    clearTimeout(this.captureStateTimeout);
+                }
+
+                // Debounce state capture
+                this.captureStateTimeout = setTimeout(() => {
+                    this.captureState();
+                    this.captureStateTimeout = null;
+                }, 500);
+            };
+
+            input.addEventListener('change', handler);
+            this.eventListeners.push({ element: input, event: 'change', handler });
         });
 
         // Keyboard shortcuts for new features
@@ -506,10 +553,30 @@ class AdvancedFeatures {
         this.updateFavoritesList();
         this.updateRecentHistory();
 
-        // Add welcome toast
-        setTimeout(() => {
-            this.showToast('info', 'Welcome Back!', 'All your settings have been restored', 4000);
-        }, 500);
+        // Add welcome toast (optional, could be commented out)
+        // setTimeout(() => {
+        //     this.showToast('info', 'Welcome Back!', 'All your settings have been restored', 4000);
+        // }, 500);
+    }
+
+    // Cleanup method
+    cleanup() {
+        // Clear timeouts
+        if (this.captureStateTimeout) {
+            clearTimeout(this.captureStateTimeout);
+            this.captureStateTimeout = null;
+        }
+
+        if (this.toastTimeout) {
+            clearTimeout(this.toastTimeout);
+            this.toastTimeout = null;
+        }
+
+        // Remove event listeners
+        this.eventListeners.forEach(({ element, event, handler }) => {
+            element.removeEventListener(event, handler);
+        });
+        this.eventListeners = [];
     }
 }
 

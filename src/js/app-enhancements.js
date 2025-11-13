@@ -7,6 +7,9 @@ class AppEnhancements {
     constructor() {
         this.autosaveInterval = null;
         this.lastSaveTime = null;
+        this.saveTimeout = null;
+        this.statusTimeouts = [];
+        this.eventListeners = [];
         this.init();
     }
 
@@ -18,9 +21,36 @@ class AppEnhancements {
         this.loadSavedSettings();
     }
 
+    // ========== CLEANUP ==========
+    cleanup() {
+        // Clear intervals
+        if (this.autosaveInterval) {
+            clearInterval(this.autosaveInterval);
+            this.autosaveInterval = null;
+        }
+
+        // Clear timeouts
+        if (this.saveTimeout) {
+            clearTimeout(this.saveTimeout);
+            this.saveTimeout = null;
+        }
+
+        this.statusTimeouts.forEach(timeout => clearTimeout(timeout));
+        this.statusTimeouts = [];
+
+        // Remove event listeners
+        this.eventListeners.forEach(({ element, event, handler }) => {
+            element.removeEventListener(event, handler);
+        });
+        this.eventListeners = [];
+    }
+
     // ========== AUTOSAVE ==========
     initAutosave() {
-        const statusEl = document.getElementById('autosaveStatus');
+        // Clear existing interval to prevent race condition
+        if (this.autosaveInterval) {
+            clearInterval(this.autosaveInterval);
+        }
 
         // Autosave every 30 seconds
         this.autosaveInterval = setInterval(() => {
@@ -28,15 +58,20 @@ class AppEnhancements {
             this.updateAutosaveStatus('saved');
         }, 30000);
 
-        // Save on input change
+        // Save on input change with debouncing
         document.querySelectorAll('input, select').forEach(input => {
-            input.addEventListener('change', () => {
-                clearTimeout(this.saveTimeout);
+            const handler = () => {
+                if (this.saveTimeout) {
+                    clearTimeout(this.saveTimeout);
+                }
                 this.saveTimeout = setTimeout(() => {
                     this.saveSettings();
                     this.updateAutosaveStatus('saved');
                 }, 1000);
-            });
+            };
+
+            input.addEventListener('change', handler);
+            this.eventListeners.push({ element: input, event: 'change', handler });
         });
     }
 
@@ -67,85 +102,106 @@ class AppEnhancements {
             timestamp: Date.now()
         };
 
-        localStorage.setItem('wouldyourather_settings', JSON.stringify(settings));
-        this.lastSaveTime = Date.now();
+        try {
+            localStorage.setItem('wouldyourather_settings', JSON.stringify(settings));
+            this.lastSaveTime = Date.now();
+        } catch (e) {
+            console.error('Failed to save settings to localStorage:', e);
+            // Safari private mode or storage full
+        }
     }
 
     loadSavedSettings() {
-        const saved = localStorage.getItem('wouldyourather_settings');
-        if (!saved) return;
-
         try {
+            const saved = localStorage.getItem('wouldyourather_settings');
+            if (!saved) return;
+
             const settings = JSON.parse(saved);
 
+            // Safely update DOM elements
+            const updateElement = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.value = value;
+            };
+
+            const updateCheckbox = (id, checked) => {
+                const el = document.getElementById(id);
+                if (el) el.checked = checked;
+            };
+
+            const updateText = (id, text) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text;
+            };
+
             // Load text inputs
-            if (settings.unsplashKey) document.getElementById('unsplashKey').value = settings.unsplashKey;
-            if (settings.elevenlabsKey) document.getElementById('elevenlabsKey').value = settings.elevenlabsKey;
+            if (settings.unsplashKey) updateElement('unsplashKey', settings.unsplashKey);
+            if (settings.elevenlabsKey) updateElement('elevenlabsKey', settings.elevenlabsKey);
 
             // Load selects
-            if (settings.voiceSelect) document.getElementById('voiceSelect').value = settings.voiceSelect;
-            if (settings.fontSize) document.getElementById('fontSize').value = settings.fontSize;
-            if (settings.imageFilter) document.getElementById('imageFilter').value = settings.imageFilter;
+            if (settings.voiceSelect) updateElement('voiceSelect', settings.voiceSelect);
+            if (settings.fontSize) updateElement('fontSize', settings.fontSize);
+            if (settings.imageFilter) updateElement('imageFilter', settings.imageFilter);
 
-            // Load range inputs
+            // Load range inputs with display updates
             if (settings.musicVolume) {
-                document.getElementById('musicVolume').value = settings.musicVolume;
-                document.getElementById('volumeValue').textContent = settings.musicVolume + '%';
+                updateElement('musicVolume', settings.musicVolume);
+                updateText('volumeValue', settings.musicVolume + '%');
             }
             if (settings.voiceSpeed) {
-                document.getElementById('voiceSpeed').value = settings.voiceSpeed;
-                document.getElementById('voiceSpeedValue').textContent = settings.voiceSpeed + 'x';
+                updateElement('voiceSpeed', settings.voiceSpeed);
+                updateText('voiceSpeedValue', settings.voiceSpeed + 'x');
             }
             if (settings.questionCount) {
-                document.getElementById('questionCount').value = settings.questionCount;
-                document.getElementById('questionCountValue').textContent = settings.questionCount;
+                updateElement('questionCount', settings.questionCount);
+                updateText('questionCountValue', settings.questionCount);
             }
             if (settings.questionDuration) {
-                document.getElementById('questionDuration').value = settings.questionDuration;
-                document.getElementById('questionDurationValue').textContent = settings.questionDuration + 's';
+                updateElement('questionDuration', settings.questionDuration);
+                updateText('questionDurationValue', settings.questionDuration + 's');
             }
             if (settings.optionDuration) {
-                document.getElementById('optionDuration').value = settings.optionDuration;
-                document.getElementById('optionDurationValue').textContent = settings.optionDuration + 's';
+                updateElement('optionDuration', settings.optionDuration);
+                updateText('optionDurationValue', settings.optionDuration + 's');
             }
             if (settings.pauseDuration) {
-                document.getElementById('pauseDuration').value = settings.pauseDuration;
-                document.getElementById('pauseDurationValue').textContent = settings.pauseDuration + 's';
+                updateElement('pauseDuration', settings.pauseDuration);
+                updateText('pauseDurationValue', settings.pauseDuration + 's');
             }
             if (settings.transitionSpeed) {
-                document.getElementById('transitionSpeed').value = settings.transitionSpeed;
-                document.getElementById('transitionSpeedValue').textContent = settings.transitionSpeed + 's';
+                updateElement('transitionSpeed', settings.transitionSpeed);
+                updateText('transitionSpeedValue', settings.transitionSpeed + 's');
             }
             if (settings.imageZoom) {
-                document.getElementById('imageZoom').value = settings.imageZoom;
-                document.getElementById('imageZoomValue').textContent = settings.imageZoom + 'x';
+                updateElement('imageZoom', settings.imageZoom);
+                updateText('imageZoomValue', settings.imageZoom + 'x');
             }
 
             // Load color inputs
-            if (settings.textColor) document.getElementById('textColor').value = settings.textColor;
-            if (settings.bgColor) document.getElementById('bgColor').value = settings.bgColor;
+            if (settings.textColor) updateElement('textColor', settings.textColor);
+            if (settings.bgColor) updateElement('bgColor', settings.bgColor);
 
             // Load checkboxes
             if (settings.commentEngagement !== undefined) {
-                document.getElementById('commentEngagement').checked = settings.commentEngagement;
+                updateCheckbox('commentEngagement', settings.commentEngagement);
             }
             if (settings.shareEngagement !== undefined) {
-                document.getElementById('shareEngagement').checked = settings.shareEngagement;
+                updateCheckbox('shareEngagement', settings.shareEngagement);
             }
             if (settings.followEngagement !== undefined) {
-                document.getElementById('followEngagement').checked = settings.followEngagement;
+                updateCheckbox('followEngagement', settings.followEngagement);
             }
             if (settings.likeEngagement !== undefined) {
-                document.getElementById('likeEngagement').checked = settings.likeEngagement;
+                updateCheckbox('likeEngagement', settings.likeEngagement);
             }
             if (settings.autoDownload !== undefined) {
-                document.getElementById('autoDownload').checked = settings.autoDownload;
+                updateCheckbox('autoDownload', settings.autoDownload);
             }
             if (settings.showTimestamps !== undefined) {
-                document.getElementById('showTimestamps').checked = settings.showTimestamps;
+                updateCheckbox('showTimestamps', settings.showTimestamps);
             }
             if (settings.enableAnimations !== undefined) {
-                document.getElementById('enableAnimations').checked = settings.enableAnimations;
+                updateCheckbox('enableAnimations', settings.enableAnimations);
             }
 
             this.updateAutosaveStatus('loaded');
@@ -158,20 +214,26 @@ class AppEnhancements {
         const statusEl = document.getElementById('autosaveStatus');
         if (!statusEl) return;
 
+        // Clear existing status timeouts
+        this.statusTimeouts.forEach(timeout => clearTimeout(timeout));
+        this.statusTimeouts = [];
+
         if (status === 'saved') {
             statusEl.textContent = '✓ Autosaved';
             statusEl.style.color = 'var(--green)';
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 statusEl.textContent = 'Autosave enabled';
                 statusEl.style.color = 'var(--text-lighter)';
             }, 2000);
+            this.statusTimeouts.push(timeout);
         } else if (status === 'loaded') {
             statusEl.textContent = '✓ Settings loaded';
             statusEl.style.color = 'var(--blue)';
-            setTimeout(() => {
+            const timeout = setTimeout(() => {
                 statusEl.textContent = 'Autosave enabled';
                 statusEl.style.color = 'var(--text-lighter)';
             }, 3000);
+            this.statusTimeouts.push(timeout);
         }
     }
 
@@ -180,21 +242,34 @@ class AppEnhancements {
         const dropZone = document.getElementById('dropZone');
         if (!dropZone) return;
 
+        const preventDefaults = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        };
+
+        const handleDragEnter = () => dropZone.classList.add('drag-over');
+        const handleDragLeave = () => dropZone.classList.remove('drag-over');
+        const handleDrop = (e) => {
+            dropZone.classList.remove('drag-over');
+            this.handleDrop(e);
+        };
+
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, this.preventDefaults, false);
+            dropZone.addEventListener(eventName, preventDefaults, false);
         });
 
-        dropZone.addEventListener('dragenter', () => dropZone.classList.add('drag-over'));
-        dropZone.addEventListener('dragover', () => dropZone.classList.add('drag-over'));
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-        dropZone.addEventListener('drop', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('dragenter', handleDragEnter);
+        dropZone.addEventListener('dragover', handleDragEnter);
+        dropZone.addEventListener('dragleave', handleDragLeave);
+        dropZone.addEventListener('drop', handleDrop);
 
-        dropZone.addEventListener('drop', (e) => this.handleDrop(e));
-    }
-
-    preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
+        // Store for cleanup
+        this.eventListeners.push(
+            { element: dropZone, event: 'dragenter', handler: handleDragEnter },
+            { element: dropZone, event: 'dragover', handler: handleDragEnter },
+            { element: dropZone, event: 'dragleave', handler: handleDragLeave },
+            { element: dropZone, event: 'drop', handler: handleDrop }
+        );
     }
 
     handleDrop(e) {
@@ -215,7 +290,6 @@ class AppEnhancements {
             try {
                 const config = JSON.parse(e.target.result);
                 // Load config into form (implement based on your config structure)
-                console.log('Config loaded:', config);
                 this.updateAutosaveStatus('loaded');
             } catch (err) {
                 alert('Failed to load config file: ' + err.message);
@@ -226,7 +300,7 @@ class AppEnhancements {
 
     // ========== KEYBOARD SHORTCUTS ==========
     initKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
+        const keyboardHandler = (e) => {
             // Ignore if typing in input
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
                 return;
@@ -274,7 +348,10 @@ class AppEnhancements {
                     document.getElementById('keyboardShortcuts')?.click();
                     break;
             }
-        });
+        };
+
+        document.addEventListener('keydown', keyboardHandler);
+        this.eventListeners.push({ element: document, event: 'keydown', handler: keyboardHandler });
 
         // Shortcuts modal controls
         const shortcutsBtn = document.getElementById('keyboardShortcuts');
@@ -283,24 +360,30 @@ class AppEnhancements {
         const shortcutsOverlay = document.getElementById('shortcutsOverlay');
 
         if (shortcutsBtn && shortcutsModal) {
-            shortcutsBtn.addEventListener('click', () => {
-                shortcutsModal.classList.remove('hidden');
-            });
+            const openModal = () => shortcutsModal.classList.remove('hidden');
+            const closeModal = () => shortcutsModal.classList.add('hidden');
 
-            closeShortcuts?.addEventListener('click', () => {
-                shortcutsModal.classList.add('hidden');
-            });
+            shortcutsBtn.addEventListener('click', openModal);
+            this.eventListeners.push({ element: shortcutsBtn, event: 'click', handler: openModal });
 
-            shortcutsOverlay?.addEventListener('click', () => {
-                shortcutsModal.classList.add('hidden');
-            });
+            if (closeShortcuts) {
+                closeShortcuts.addEventListener('click', closeModal);
+                this.eventListeners.push({ element: closeShortcuts, event: 'click', handler: closeModal });
+            }
+
+            if (shortcutsOverlay) {
+                shortcutsOverlay.addEventListener('click', closeModal);
+                this.eventListeners.push({ element: shortcutsOverlay, event: 'click', handler: closeModal });
+            }
 
             // Close on Escape
-            document.addEventListener('keydown', (e) => {
+            const escapeHandler = (e) => {
                 if (e.key === 'Escape' && !shortcutsModal.classList.contains('hidden')) {
-                    shortcutsModal.classList.add('hidden');
+                    closeModal();
                 }
-            });
+            };
+            document.addEventListener('keydown', escapeHandler);
+            this.eventListeners.push({ element: document, event: 'keydown', handler: escapeHandler });
         }
     }
 

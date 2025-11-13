@@ -139,29 +139,40 @@ document.addEventListener('DOMContentLoaded', () => {
             const opt1 = opt1Input.value.trim();
             const opt2 = opt2Input.value.trim();
 
-            if (opt1 && opt2) {
-                generator.promptManager.addPrompt(opt1, opt2);
+            if (!opt1 || !opt2) {
+                alert('Please enter both options');
+                return;
+            }
+
+            if (opt1.length > 100 || opt2.length > 100) {
+                alert('Each option must be 100 characters or less');
+                return;
+            }
+
+            const success = generator.promptManager.addPrompt(opt1, opt2);
+            if (success) {
                 opt1Input.value = '';
                 opt2Input.value = '';
                 renderPromptList();
             } else {
-                alert('Please enter both options');
+                alert('Failed to add prompt. Check console for details.');
             }
         };
 
         function renderPromptList() {
-            const allPrompts = generator.promptManager.getAllPrompts();
-            const customCount = generator.promptManager.customPrompts.length;
+            const customPrompts = generator.promptManager.customPrompts;
 
             promptList.innerHTML = '';
 
-            if (allPrompts.length === 0) {
-                promptList.innerHTML = '<p style="color: var(--text-tertiary); text-align: center; padding: var(--space-lg);">No prompts available</p>';
+            if (customPrompts.length === 0) {
+                promptList.innerHTML = '<p style="color: var(--text-tertiary); text-align: center; padding: var(--space-lg);">No custom prompts yet. Add one above!</p>';
                 return;
             }
 
-            allPrompts.forEach((prompt, index) => {
-                const isCustom = index < customCount;
+            customPrompts.forEach((promptObj) => {
+                const prompt = promptObj.prompt || promptObj; // Handle both old and new format
+                const id = promptObj.id;
+
                 const item = document.createElement('div');
                 item.style.cssText = `
                     display: flex;
@@ -181,27 +192,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const actions = document.createElement('div');
                 actions.style.cssText = 'display: flex; gap: var(--space-xs);';
 
-                if (isCustom) {
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = '🗑️';
-                    deleteBtn.className = 'btn btn-ghost btn-sm';
-                    deleteBtn.onclick = () => {
-                        generator.promptManager.removePrompt(index);
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '🗑️';
+                deleteBtn.className = 'btn btn-ghost btn-sm';
+                deleteBtn.onclick = () => {
+                    if (confirm('Delete this prompt?')) {
+                        generator.promptManager.removePrompt(id);
                         renderPromptList();
-                    };
-                    actions.appendChild(deleteBtn);
-                } else {
-                    const badge = document.createElement('span');
-                    badge.textContent = 'Default';
-                    badge.style.cssText = `
-                        font-size: 11px;
-                        color: var(--text-tertiary);
-                        padding: 2px 8px;
-                        background: var(--surface-2);
-                        border-radius: 4px;
-                    `;
-                    actions.appendChild(badge);
-                }
+                    }
+                };
+                actions.appendChild(deleteBtn);
 
                 item.appendChild(text);
                 item.appendChild(actions);
@@ -252,6 +252,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return modal;
     }
-
-    console.log('🚀 WouldYouRather.ai initialized successfully!');
 });

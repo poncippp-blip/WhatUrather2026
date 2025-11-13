@@ -2,6 +2,8 @@
 // 1000+ Premium Prompts with Clear Opposing Choices
 class PromptManager {
     constructor() {
+        this.nextId = 1; // For generating unique IDs for custom prompts
+
         // Simple Fast Foods - Only basic, common fast foods (no complex combinations)
         // Each pair is DIFFERENT types of food for variety
         this.simpleFastFoodPrompts = [
@@ -1128,19 +1130,29 @@ class PromptManager {
     }
 
     loadFromStorage() {
-        const stored = localStorage.getItem('customPrompts');
-        if (stored) {
-            try {
+        try {
+            const stored = localStorage.getItem('customPrompts');
+            if (stored) {
                 this.customPrompts = JSON.parse(stored);
-            } catch (e) {
-                console.error('Failed to load custom prompts:', e);
-                this.customPrompts = [];
+                // Find highest ID to continue numbering
+                if (this.customPrompts.length > 0) {
+                    const maxId = Math.max(...this.customPrompts.map(p => p.id || 0));
+                    this.nextId = maxId + 1;
+                }
             }
+        } catch (e) {
+            console.error('Failed to load custom prompts:', e);
+            this.customPrompts = [];
         }
     }
 
     saveToStorage() {
-        localStorage.setItem('customPrompts', JSON.stringify(this.customPrompts));
+        try {
+            localStorage.setItem('customPrompts', JSON.stringify(this.customPrompts));
+        } catch (e) {
+            console.error('Failed to save custom prompts:', e);
+            // Handle Safari private mode or storage full
+        }
     }
 
     getFoodOnlyPrompts() {
@@ -1152,7 +1164,9 @@ class PromptManager {
     }
 
     getAllPrompts() {
-        return [...this.customPrompts, ...this.defaultPrompts];
+        // Extract just the prompt arrays for backward compatibility
+        const customArrays = this.customPrompts.map(p => p.prompt || p);
+        return [...customArrays, ...this.defaultPrompts];
     }
 
     // Automatically selects RANDOM prompts - no configuration needed!
@@ -1168,40 +1182,84 @@ class PromptManager {
             all = this.getAllPrompts();
         }
 
-        const selected = [];
-        const usedIndices = new Set();
-
-        while (selected.length < count && selected.length < all.length) {
-            const index = Math.floor(Math.random() * all.length);
-            if (!usedIndices.has(index)) {
-                usedIndices.add(index);
-                selected.push({
-                    option1: all[index][0],
-                    option2: all[index][1]
-                });
-            }
+        // Use Fisher-Yates shuffle for efficient random selection
+        const shuffled = [...all];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
+
+        // Take first 'count' items
+        const selected = shuffled.slice(0, Math.min(count, shuffled.length)).map(prompt => ({
+            option1: prompt[0],
+            option2: prompt[1]
+        }));
 
         return selected;
     }
 
     addPrompt(option1, option2) {
-        this.customPrompts.push([option1, option2]);
+        // Validate inputs
+        if (!option1 || !option2 || typeof option1 !== 'string' || typeof option2 !== 'string') {
+            console.error('Invalid prompt: both options must be non-empty strings');
+            return false;
+        }
+
+        // Limit length to prevent abuse
+        const maxLength = 100;
+        if (option1.length > maxLength || option2.length > maxLength) {
+            console.error(`Prompt options too long (max ${maxLength} characters)`);
+            return false;
+        }
+
+        // Sanitize inputs (trim and remove excessive whitespace)
+        const clean1 = option1.trim().replace(/\s+/g, ' ');
+        const clean2 = option2.trim().replace(/\s+/g, ' ');
+
+        this.customPrompts.push({
+            id: this.nextId++,
+            prompt: [clean1, clean2],
+            created: Date.now()
+        });
         this.saveToStorage();
+        return true;
     }
 
-    removePrompt(index) {
-        if (index >= 0 && index < this.customPrompts.length) {
-            this.customPrompts.splice(index, 1);
+    removePrompt(id) {
+        const initialLength = this.customPrompts.length;
+        this.customPrompts = this.customPrompts.filter(p => p.id !== id);
+
+        if (this.customPrompts.length < initialLength) {
             this.saveToStorage();
+            return true;
         }
+        return false;
     }
 
-    updatePrompt(index, option1, option2) {
-        if (index >= 0 && index < this.customPrompts.length) {
-            this.customPrompts[index] = [option1, option2];
-            this.saveToStorage();
+    updatePrompt(id, option1, option2) {
+        // Validate inputs
+        if (!option1 || !option2 || typeof option1 !== 'string' || typeof option2 !== 'string') {
+            console.error('Invalid prompt: both options must be non-empty strings');
+            return false;
         }
+
+        const maxLength = 100;
+        if (option1.length > maxLength || option2.length > maxLength) {
+            console.error(`Prompt options too long (max ${maxLength} characters)`);
+            return false;
+        }
+
+        const clean1 = option1.trim().replace(/\s+/g, ' ');
+        const clean2 = option2.trim().replace(/\s+/g, ' ');
+
+        const prompt = this.customPrompts.find(p => p.id === id);
+        if (prompt) {
+            prompt.prompt = [clean1, clean2];
+            prompt.modified = Date.now();
+            this.saveToStorage();
+            return true;
+        }
+        return false;
     }
 
     resetToDefaults() {
