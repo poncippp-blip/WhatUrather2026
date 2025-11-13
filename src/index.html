@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WouldYouRather.ai</title>
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/saas-components.css">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="topnav">
+        <div class="nav-brand">
+            <span class="nav-icon">🎥</span>
+            <span class="nav-title">WouldYouRather.ai</span>
+            <span class="nav-badge">Pro</span>
+        </div>
+
+        <!-- Command Palette Trigger -->
+        <div class="nav-search">
+            <button class="search-trigger tooltip" id="commandPalette" data-tooltip="Command Palette (⌘K)">
+                <span>🔍</span>
+                <span style="font-size: 12px; opacity: 0.7;">Search or type command...</span>
+                <kbd style="margin-left: auto;">⌘K</kbd>
+            </button>
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn btn-sm tooltip" id="notificationsBtn" data-tooltip="Notifications">
+                <span class="notification-badge" style="display: none;">0</span>
+                🔔
+            </button>
+            <button class="btn btn-sm tooltip" id="helpBtn" data-tooltip="Help & Documentation">❓</button>
+            <button class="btn btn-sm btn-primary tooltip" id="generateBtn" data-tooltip="Generate Video (G)">🎬 Generate</button>
+
+            <!-- Profile Dropdown -->
+            <div class="profile-dropdown">
+                <button class="profile-btn tooltip" id="profileBtn" data-tooltip="Account Settings">
+                    <div class="profile-avatar">👤</div>
+                </button>
+                <div class="profile-menu hidden" id="profileMenu">
+                    <div class="profile-header">
+                        <div class="profile-avatar-large">👤</div>
+                        <div>
+                            <div class="profile-name">User</div>
+                            <div class="profile-email">user@example.com</div>
+                        </div>
+                    </div>
+                    <div class="profile-menu-items">
+                        <a href="#" class="profile-menu-item" id="dashboardLink">📊 Dashboard</a>
+                        <a href="#" class="profile-menu-item" id="projectsLink">📁 Projects</a>
+                        <a href="#" class="profile-menu-item" id="analyticsLink">📈 Analytics</a>
+                        <a href="#" class="profile-menu-item" id="settingsLink">⚙️ Settings</a>
+                        <a href="#" class="profile-menu-item" id="billingLink">💳 Billing</a>
+                        <div class="profile-menu-divider"></div>
+                        <a href="#" class="profile-menu-item" id="themeToggle">🌙 Dark Mode</a>
+                        <a href="#" class="profile-menu-item" id="keyboardShortcuts">⌨️ Shortcuts</a>
+                        <a href="#" class="profile-menu-item">🚪 Sign Out</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Layout: Split Workspace -->
+    <main class="workspace">
+        <!-- Left: Settings Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-scroll">
+                <!-- Quick Actions -->
+                <section class="section">
+                    <h2 class="section-title">Quick Actions</h2>
+                    <div class="quick-actions-grid">
+                        <button class="btn btn-sm tooltip" id="randomPromptBtn" data-tooltip="Generate random prompt">🎲 Random</button>
+                        <button class="btn btn-sm tooltip" id="bulkUploadBtn" data-tooltip="Upload multiple prompts">📤 Bulk Upload</button>
+                        <button class="btn btn-sm tooltip" id="undoBtn" data-tooltip="Undo last change (Ctrl+Z)">↶ Undo</button>
+                        <button class="btn btn-sm tooltip" id="redoBtn" data-tooltip="Redo last change (Ctrl+Y)">↷ Redo</button>
+                        <button class="btn btn-sm tooltip" id="copySettingsBtn" data-tooltip="Copy settings to clipboard">📋 Copy</button>
+                        <button class="btn btn-sm tooltip" id="pasteSettingsBtn" data-tooltip="Paste settings from clipboard">📄 Paste</button>
+                        <button class="btn btn-sm tooltip" id="exportJsonBtn" data-tooltip="Export as JSON file">💾 Export</button>
+                        <button class="btn btn-sm tooltip" id="favoritesBtn" data-tooltip="View saved favorites">⭐ Favorites</button>
+                    </div>
+                </section>
+
+                <!-- API Configuration -->
+                <section class="section">
+                    <h2 class="section-title">Configuration</h2>
+                    <div class="field">
+                        <label class="label">Unsplash API Key</label>
+                        <input type="text" class="input" id="unsplashKey" placeholder="Enter API key">
+                        <small style="display: block; margin-top: 0.25rem; font-size: 11px; color: var(--text-lighter);">For high-quality background images</small>
+                    </div>
+                    <div class="field">
+                        <label class="label">ElevenLabs API Key</label>
+                        <input type="text" class="input" id="elevenlabsKey" placeholder="Enter API key">
+                        <small style="display: block; margin-top: 0.25rem; font-size: 11px; color: var(--text-lighter);">For AI voice generation</small>
+                    </div>
+                </section>
+
+                <!-- Audio Settings -->
+                <section class="section">
+                    <h2 class="section-title">Audio</h2>
+                    <div class="field">
+                        <label class="label">Voice</label>
+                        <select class="input" id="voiceSelect">
+                            <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Female)</option>
+                            <option value="AZnzlk1XvdvUeBnXmlld">Domi (Female)</option>
+                            <option value="EXAVITQu4vr4xnSDxMaL">Bella (Female)</option>
+                            <option value="ErXwobaYiN019PkySvjV">Antoni (Male)</option>
+                            <option value="MF3mGyEYCl7XYWbV9V6O">Elli (Female)</option>
+                            <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Male)</option>
+                            <option value="VR6AewLTigWG4xSOukaG">Arnold (Male)</option>
+                            <option value="pNInz6obpgDQGcFmaJgB">Adam (Male)</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="field-row">
+                            <label class="label">Music Volume</label>
+                            <span class="field-value" id="volumeValue">30%</span>
+                        </div>
+                        <input type="range" class="slider" id="musicVolume" min="0" max="100" value="30">
+                    </div>
+                    <div class="field">
+                        <div class="field-row">
+                            <label class="label">Voice Speed</label>
+                            <span class="field-value" id="voiceSpeedValue">1.0x</span>
+                        </div>
+                        <input type="range" class="slider" id="voiceSpeed" min="0.5" max="2" step="0.1" value="1">
+                    </div>
+                </section>
+
+                <!-- Question Settings -->
+                <section class="section">
+                    <h2 class="section-title">Questions</h2>
+                    <div class="field">
+                        <div class="field-row">
+                            <label class="label">Number of Questions</label>
+                            <span class="field-value" id="questionCountValue">3</span>
+                        </div>
+                        <input type="range" class="slider" id="questionCount" min="1" max="15" value="3">
+                    </div>
+                </section>
+
+                <!-- Timing Controls -->
+                <section class="section">
+                    <h2 class="section-title">Timing</h2>
+                    <div class="field-grid">
+                        <div class="field">
+                            <div class="field-row">
+                                <label class="label">Question Duration</label>
+                                <span class="field-value" id="questionDurationValue">3s</span>
+                            </div>
+                            <input type="range" class="slider" id="questionDuration" min="1" max="10" step="0.5" value="3">
+                        </div>
+                        <div class="field">
+                            <div class="field-row">
+                                <label class="label">Option Duration</label>
+                                <span class="field-value" id="optionDurationValue">2s</span>
+                            </div>
+                            <input type="range" class="slider" id="optionDuration" min="1" max="8" step="0.5" value="2">
+                        </div>
+                        <div class="field">
+                            <div class="field-row">
+                                <label class="label">Pause Duration</label>
+                                <span class="field-value" id="pauseDurationValue">1s</span>
+                            </div>
+                            <input type="range" class="slider" id="pauseDuration" min="0" max="5" step="0.5" value="1">
+                        </div>
+                        <div class="field">
+                            <div class="field-row">
+                                <label class="label">Transition Speed</label>
+                                <span class="field-value" id="transitionSpeedValue">0.5s</span>
+                            </div>
+                            <input type="range" class="slider" id="transitionSpeed" min="0.1" max="2" step="0.1" value="0.5">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Visual Settings -->
+                <section class="section">
+                    <h2 class="section-title">Visual</h2>
+                    <div class="field-grid">
+                        <div class="field">
+                            <label class="label">Text Color</label>
+                            <input type="color" class="input input-color" id="textColor" value="#ffffff">
+                        </div>
+                        <div class="field">
+                            <label class="label">Background Color</label>
+                            <input type="color" class="input input-color" id="bgColor" value="#000000">
+                        </div>
+                        <div class="field">
+                            <label class="label">Font Size</label>
+                            <select class="input" id="fontSize">
+                                <option value="small">Small</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="large">Large</option>
+                                <option value="xl">Extra Large</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Image Filter</label>
+                            <select class="input" id="imageFilter">
+                                <option value="none">None</option>
+                                <option value="blur">Blur</option>
+                                <option value="darken">Darken</option>
+                                <option value="grayscale">Grayscale</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="field-row">
+                            <label class="label">Image Zoom</label>
+                            <span class="field-value" id="imageZoomValue">1.2x</span>
+                        </div>
+                        <input type="range" class="slider" id="imageZoom" min="1" max="2" step="0.1" value="1.2">
+                    </div>
+                </section>
+
+                <!-- Engagement Options -->
+                <section class="section">
+                    <h2 class="section-title">Engagement</h2>
+                    <div class="engagement-grid">
+                        <label class="checkbox">
+                            <input type="checkbox" id="commentEngagement" checked>
+                            <span>Comment Hook</span>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" id="shareEngagement" checked>
+                            <span>Share Hook</span>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" id="followEngagement">
+                            <span>Follow Hook</span>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" id="likeEngagement">
+                            <span>Like Hook</span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Timing Presets -->
+                <section class="section">
+                    <h2 class="section-title">Presets</h2>
+                    <div class="preset-grid">
+                        <button class="preset" onclick="videoGenerator.applyPreset('fast')">⚡ Fast</button>
+                        <button class="preset preset-active" onclick="videoGenerator.applyPreset('balanced')">⚖️ Balanced</button>
+                        <button class="preset" onclick="videoGenerator.applyPreset('cinematic')">🎬 Cinematic</button>
+                        <button class="preset" onclick="videoGenerator.applyPreset('viral')">🔥 Viral</button>
+                    </div>
+                </section>
+
+                <!-- Quick Templates -->
+                <section class="section">
+                    <h2 class="section-title">Quick Templates</h2>
+                    <div class="field">
+                        <select class="input" id="templateSelect">
+                            <option value="">Select template...</option>
+                            <option value="youtube-shorts">YouTube Shorts</option>
+                            <option value="tiktok">TikTok Viral</option>
+                            <option value="instagram-reels">Instagram Reels</option>
+                            <option value="professional">Professional</option>
+                            <option value="minimalist">Minimalist</option>
+                            <option value="colorful">Colorful & Bold</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-sm" id="saveTemplateBtn" style="width: 100%; margin-top: 0.5rem;">💾 Save Current as Template</button>
+                </section>
+
+                <!-- Output Settings -->
+                <section class="section">
+                    <h2 class="section-title">Output</h2>
+                    <div class="field-grid">
+                        <div class="field">
+                            <label class="label">Quality</label>
+                            <select class="input" id="videoQuality">
+                                <option value="720">720p (HD)</option>
+                                <option value="1080" selected>1080p (Full HD)</option>
+                                <option value="1440">1440p (2K)</option>
+                                <option value="2160">2160p (4K)</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Frame Rate</label>
+                            <select class="input" id="fps">
+                                <option value="24">24 FPS (Cinema)</option>
+                                <option value="30" selected>30 FPS (Standard)</option>
+                                <option value="60">60 FPS (Smooth)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Aspect Ratio</label>
+                        <select class="input" id="aspectRatio">
+                            <option value="9:16" selected>9:16 (Vertical - TikTok/Reels)</option>
+                            <option value="1:1">1:1 (Square - Instagram)</option>
+                            <option value="16:9">16:9 (Horizontal - YouTube)</option>
+                            <option value="4:5">4:5 (Portrait - Instagram)</option>
+                        </select>
+                    </div>
+                </section>
+
+                <!-- Advanced Options -->
+                <section class="section">
+                    <h2 class="section-title">Advanced</h2>
+                    <label class="checkbox">
+                        <input type="checkbox" id="autoGenerate">
+                        <span>Auto-generate on settings change</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="autoDownload">
+                        <span>Auto-download when complete</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="showTimestamps" checked>
+                        <span>Show timestamps in preview</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="enableAnimations" checked>
+                        <span>Enable text animations</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="loopPreview">
+                        <span>Loop preview playback</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="showNotifications" checked>
+                        <span>Show desktop notifications</span>
+                    </label>
+                </section>
+
+                <!-- Recent History -->
+                <section class="section">
+                    <h2 class="section-title">Recent History</h2>
+                    <div id="recentHistory" style="font-size: 12px; color: var(--text-light);">
+                        <p style="padding: 0.5rem; text-align: center;">No recent projects</p>
+                    </div>
+                </section>
+            </div>
+        </aside>
+
+        <!-- Center: Preview Area -->
+        <section class="preview-area">
+            <div class="preview-header">
+                <div>
+                    <h1 class="preview-title">Preview</h1>
+                    <small style="font-size: 12px; color: var(--text-lighter);" id="autosaveStatus">Autosave enabled</small>
+                </div>
+                <div class="preview-actions">
+                    <button class="btn btn-sm tooltip" id="playBtn" data-tooltip="Play Preview (Space)">▶️ Play</button>
+                    <button class="btn btn-sm tooltip" id="pauseBtn" data-tooltip="Pause Preview (Space)">⏸️ Pause</button>
+                    <button class="btn btn-sm tooltip" id="restartBtn" data-tooltip="Restart Preview (R)">↻ Restart</button>
+                    <button class="btn btn-sm tooltip" id="prevFrameBtn" data-tooltip="Previous Frame (←)">⏮️</button>
+                    <button class="btn btn-sm tooltip" id="nextFrameBtn" data-tooltip="Next Frame (→)">⏭️</button>
+                    <select class="input" id="playbackSpeed" style="width: auto; font-size: 12px;">
+                        <option value="0.25">0.25x</option>
+                        <option value="0.5">0.5x</option>
+                        <option value="1" selected>1x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                    </select>
+                    <button class="btn btn-sm tooltip" id="zoomOutBtn" data-tooltip="Zoom Out">🔍-</button>
+                    <button class="btn btn-sm tooltip" id="zoomInBtn" data-tooltip="Zoom In">🔍+</button>
+                    <button class="btn btn-sm tooltip" id="fullscreenBtn" data-tooltip="Fullscreen (F)">⛶ Fullscreen</button>
+                </div>
+            </div>
+
+            <!-- Video Canvas -->
+            <div class="canvas-wrapper">
+                <div class="canvas-container" id="dropZone">
+                    <canvas id="previewCanvas" class="canvas"></canvas>
+                    <div class="canvas-overlay" id="previewOverlay">
+                        <div class="overlay-icon">🎬</div>
+                        <p class="overlay-text">Click Generate to create your video</p>
+                        <p style="font-size: 12px; color: var(--text-lighter); margin-top: 1rem;">💡 Drag & drop a config file here to load</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline" id="timelineContainer" style="display: none;">
+                <div class="timeline-header">
+                    <span class="timeline-time" id="currentTime">0:00</span>
+                    <span class="timeline-time" id="totalDuration">0:00</span>
+                </div>
+                <div class="timeline-track" id="timelineTrack"></div>
+            </div>
+
+            <!-- Status -->
+            <div class="status hidden" id="statusPanel">
+                <div class="status-info">
+                    <span class="status-icon">⏳</span>
+                    <span class="status-text" id="statusText">Generating...</span>
+                </div>
+                <div class="status-bar">
+                    <div class="status-progress" id="progressFill"></div>
+                </div>
+            </div>
+
+            <!-- Download -->
+            <div class="download-area">
+                <button class="btn btn-large btn-primary tooltip" id="downloadBtn" data-tooltip="Download Video (D)" disabled>
+                    <span>📥 Download Video</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Hidden Elements -->
+    <input type="file" id="configFileInput" accept=".json" style="display: none;">
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="modal hidden" id="shortcutsModal">
+        <div class="modal-overlay" id="shortcutsOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">⌨️ Keyboard Shortcuts</h2>
+                <button class="modal-close" id="closeShortcuts">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-grid">
+                    <div class="shortcut-item">
+                        <kbd>Space</kbd>
+                        <span>Play/Pause</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>R</kbd>
+                        <span>Restart</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>G</kbd>
+                        <span>Generate</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>D</kbd>
+                        <span>Download</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>S</kbd>
+                        <span>Save Config</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>L</kbd>
+                        <span>Load Config</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>P</kbd>
+                        <span>Prompts</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>T</kbd>
+                        <span>Toggle Theme</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>F</kbd>
+                        <span>Fullscreen</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>←</kbd>
+                        <span>Previous Frame</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>→</kbd>
+                        <span>Next Frame</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl+Z</kbd>
+                        <span>Undo</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl+Y</kbd>
+                        <span>Redo</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl+C</kbd>
+                        <span>Copy Settings</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl+V</kbd>
+                        <span>Paste Settings</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>?</kbd>
+                        <span>Show Shortcuts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorites Modal -->
+    <div class="modal hidden" id="favoritesModal">
+        <div class="modal-overlay" id="favoritesOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">⭐ Favorite Settings</h2>
+                <button class="modal-close" id="closeFavorites">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="favoritesList" style="display: grid; gap: 0.75rem;">
+                    <p style="text-align: center; color: var(--text-light);">No favorites saved yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast hidden" id="notificationToast">
+        <div class="toast-icon" id="toastIcon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title" id="toastTitle">Success</div>
+            <div class="toast-message" id="toastMessage">Action completed successfully</div>
+        </div>
+        <button class="toast-close" id="toastClose">✕</button>
+    </div>
+
+    <!-- Comparison View -->
+    <div class="modal hidden" id="comparisonModal">
+        <div class="modal-overlay" id="comparisonOverlay"></div>
+        <div class="modal-content" style="max-width: 1200px;">
+            <div class="modal-header">
+                <h2 class="modal-title">⚖️ Settings Comparison</h2>
+                <button class="modal-close" id="closeComparison">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 1rem;">Current Settings</h3>
+                        <div id="currentSettingsView" style="font-size: 12px; font-family: monospace; background: var(--surface); padding: 1rem; border-radius: 6px; max-height: 400px; overflow-y: auto;"></div>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 1rem;">Saved Settings</h3>
+                        <div id="savedSettingsView" style="font-size: 12px; font-family: monospace; background: var(--surface); padding: 1rem; border-radius: 6px; max-height: 400px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Palette -->
+    <div class="modal hidden" id="commandPaletteModal">
+        <div class="modal-overlay" id="commandPaletteOverlay"></div>
+        <div class="command-palette">
+            <div class="command-search">
+                <span class="command-search-icon">🔍</span>
+                <input type="text" class="command-input" id="commandInput" placeholder="Type a command or search..." autocomplete="off">
+                <kbd>ESC</kbd>
+            </div>
+            <div class="command-results" id="commandResults">
+                <div class="command-section">
+                    <div class="command-section-title">Quick Actions</div>
+                    <div class="command-item" data-action="generate">
+                        <span class="command-icon">🎬</span>
+                        <div class="command-info">
+                            <div class="command-name">Generate Video</div>
+                            <div class="command-desc">Create a new video with current settings</div>
+                        </div>
+                        <kbd>G</kbd>
+                    </div>
+                    <div class="command-item" data-action="save">
+                        <span class="command-icon">💾</span>
+                        <div class="command-info">
+                            <div class="command-name">Save Settings</div>
+                            <div class="command-desc">Save current configuration</div>
+                        </div>
+                        <kbd>S</kbd>
+                    </div>
+                    <div class="command-item" data-action="export">
+                        <span class="command-icon">📤</span>
+                        <div class="command-info">
+                            <div class="command-name">Export as JSON</div>
+                            <div class="command-desc">Download settings file</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="command-section">
+                    <div class="command-section-title">Navigation</div>
+                    <div class="command-item" data-action="dashboard">
+                        <span class="command-icon">📊</span>
+                        <div class="command-info">
+                            <div class="command-name">Dashboard</div>
+                            <div class="command-desc">View analytics and overview</div>
+                        </div>
+                    </div>
+                    <div class="command-item" data-action="projects">
+                        <span class="command-icon">📁</span>
+                        <div class="command-info">
+                            <div class="command-name">Projects</div>
+                            <div class="command-desc">Manage all your projects</div>
+                        </div>
+                    </div>
+                    <div class="command-item" data-action="analytics">
+                        <span class="command-icon">📈</span>
+                        <div class="command-info">
+                            <div class="command-name">Analytics</div>
+                            <div class="command-desc">Detailed usage statistics</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="command-section">
+                    <div class="command-section-title">Templates</div>
+                    <div class="command-item" data-action="template-youtube">
+                        <span class="command-icon">📺</span>
+                        <div class="command-info">
+                            <div class="command-name">YouTube Shorts Template</div>
+                            <div class="command-desc">Optimized for YouTube vertical content</div>
+                        </div>
+                    </div>
+                    <div class="command-item" data-action="template-tiktok">
+                        <span class="command-icon">🎵</span>
+                        <div class="command-info">
+                            <div class="command-name">TikTok Viral Template</div>
+                            <div class="command-desc">Perfect for TikTok engagement</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div class="view-container hidden" id="dashboardView">
+        <div class="view-content">
+            <div class="view-header">
+                <h1 class="view-title">📊 Dashboard</h1>
+                <button class="btn btn-sm" onclick="showView('workspace')">← Back to Editor</button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🎬</div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Videos Created</div>
+                    <div class="stat-change neutral">Start creating videos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-value">0s</div>
+                    <div class="stat-label">Total Duration</div>
+                    <div class="stat-change neutral">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💾</div>
+                    <div class="stat-value">0 B</div>
+                    <div class="stat-label">Storage Used</div>
+                    <div class="stat-change neutral">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-value">-</div>
+                    <div class="stat-label">Total Views</div>
+                    <div class="stat-change neutral">Coming soon</div>
+                </div>
+            </div>
+
+            <!-- Activity -->
+            <div class="dashboard-section">
+                <h2 class="section-header">Recent Activity</h2>
+                <div class="activity-list">
+                    <p style="text-align: center; padding: 2rem; color: var(--text-light);">No activity yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects View -->
+    <div class="view-container hidden" id="projectsView">
+        <div class="view-content">
+            <div class="view-header">
+                <h1 class="view-title">📁 Projects</h1>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-sm btn-primary" id="newProjectBtn">+ New Project</button>
+                    <button class="btn btn-sm" onclick="showView('workspace')">← Back to Editor</button>
+                </div>
+            </div>
+
+            <!-- Project Filters -->
+            <div class="project-filters">
+                <input type="text" class="input" placeholder="🔍 Search projects..." id="projectSearch">
+                <select class="input" id="projectSort">
+                    <option>Sort by: Recent</option>
+                    <option>Sort by: Name</option>
+                    <option>Sort by: Date Created</option>
+                    <option>Sort by: Last Modified</option>
+                </select>
+                <select class="input" id="projectFilter">
+                    <option>All Projects</option>
+                    <option>YouTube Shorts</option>
+                    <option>TikTok</option>
+                    <option>Instagram Reels</option>
+                    <option>Archived</option>
+                </select>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="projects-grid" id="projectsGrid">
+                <!-- Projects will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics View -->
+    <div class="view-container hidden" id="analyticsView">
+        <div class="view-content">
+            <div class="view-header">
+                <h1 class="view-title">📈 Analytics</h1>
+                <button class="btn btn-sm" onclick="showView('workspace')">← Back to Editor</button>
+            </div>
+
+            <!-- Analytics coming soon -->
+            <div style="text-align: center; padding: 4rem; color: var(--text-light);">
+                <div style="font-size: 64px; margin-bottom: 1rem;">📊</div>
+                <h2 style="font-size: 24px; margin-bottom: 0.5rem;">Analytics Dashboard</h2>
+                <p>Detailed analytics and insights coming soon</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Panel -->
+    <div class="notifications-panel hidden" id="notificationsPanel">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <button class="btn btn-sm">Mark all read</button>
+        </div>
+        <div class="notifications-list">
+            <p style="text-align: center; padding: 2rem; color: var(--text-light);">No notifications yet</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="js/app-enhancements.js"></script>
+    <script src="js/advanced-features.js"></script>
+    <script src="js/saas-features.js"></script>
+    <script src="js/prompt-manager.js"></script>
+    <script src="js/engagement-manager.js"></script>
+    <script src="libs/ffmpeg/ffmpeg.js"></script>
+    <script src="js/video-generator.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
